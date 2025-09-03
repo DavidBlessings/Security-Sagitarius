@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sagittarius Security Service - Enhanced Storage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #4f46e5;
+      --brand-2: #06b6d4;
+      --bg: #0b1220;
+      --panel: #0f172a;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(79,70,229,.20), transparent),
+                  radial-gradient(800px 500px at 100% 0%, rgba(6,182,212,.18), transparent),
+                  var(--bg);
+      color: #e5e7eb;
+    }
+    .glass { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); backdrop-filter: blur(8px); border: 1px solid rgba(148,163,184,0.15); }
+    .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04); }
+    .ring-brand { box-shadow: 0 0 0 2px rgba(79,70,229,.35); }
+    .btn { transition: transform .08s ease, filter .2s ease, background-color .2s ease; }
+    .btn:active { transform: translateY(1px) scale(0.99); }
+    .tab-active { background: linear-gradient(180deg, rgba(79,70,229,.25), rgba(6,182,212,.20)); border-color: rgba(79,70,229,.55); color: #fff; }
+    .map-grid {
+      background-image:
+        linear-gradient(rgba(148,163,184,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.12) 1px, transparent 1px);
+      background-size: 36px 36px, 36px 36px;
+      background-position: center center;
+    }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(6,182,212,.45); }
+      70% { box-shadow: 0 0 0 12px rgba(6,182,212,0); }
+      100% { box-shadow: 0 0 0 0 rgba(6,182,212,0); }
+    }
+    .badge { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06); }
+    .status-dot { width: 10px; height: 10px; border-radius: 9999px; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .sync-indicator { transition: all 0.3s ease; }
+    .sync-success { color: #10b981; }
+    .sync-error { color: #ef4444; }
+    .sync-pending { color: #f59e0b; }
+  </style>
+</head>
+<body class="min-h-full">
+  <!-- Auth Gate -->
+  <section id="authGate" class="fixed inset-0 flex items-center justify-center p-6">
+    <div class="max-w-3xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="p-6 rounded-2xl glass border border-white/10 shadow-soft">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-400 text-white font-extrabold text-sm">SSS</div>
+          <div>
+            <p class="font-extrabold text-lg tracking-tight">Sagittarius Security Service</p>
+            <p class="text-xs text-slate-400">Enhanced Data Storage</p>
+          </div>
+        </div>
+        <h2 class="text-xl font-extrabold">Welcome</h2>
+        <p class="text-slate-400 text-sm mt-1">Sign in to access the enhanced dashboard with persistent storage.</p>
+        <div class="mt-4 grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-lg">
+          <button id="tabSignIn" class="px-3 py-1.5 rounded-md tab-active text-sm">Sign in</button>
+          <button id="tabSignUp" class="px-3 py-1.5 rounded-md text-sm">Sign up</button>
+        </div>
+
+        <!-- Sign In -->
+        <form id="formSignIn" class="mt-3 space-y-2.5">
+          <div>
+            <label class="text-xs text-slate-400">Badge ID</label>
+            <input name="badge" placeholder="ADMIN-001 or STAFF-001" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white" required>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Password</label>
+            <input name="password" type="password" placeholder="Enter password" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white" required>
+          </div>
+          <button class="w-full btn px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm">Sign In</button>
+          <div class="text-[10px] text-slate-400 text-center space-y-0.5">
+            <p><strong>Admin:</strong> ADMIN-001 / admin123</p>
+            <p><strong>Staff:</strong> STAFF-001 / staff123</p>
+          </div>
+        </form>
+
+        <!-- Sign Up -->
+        <form id="formSignUp" class="mt-3 space-y-2.5 hidden">
+          <div class="grid grid-cols-1 gap-2.5">
+            <div>
+              <label class="text-xs text-slate-400">Full name</label>
+              <input name="name" placeholder="Your name" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white" required>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Badge ID</label>
+              <input name="badge" placeholder="Pick a badge (e.g., Z-777)" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white" required>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Password</label>
+              <input name="password" type="password" placeholder="Create password" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white" required>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Role</label>
+              <select name="role" class="w-full px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white">
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button class="w-full btn px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm">Create Account</button>
+          <p class="text-[10px] text-slate-400 text-center">Creates persistent account stored locally.</p>
+        </form>
+      </div>
+
+      <div class="p-5 rounded-2xl glass border border-white/10 shadow-soft">
+        <h3 class="font-semibold text-base">Enhanced Storage Features</h3>
+        <ul class="mt-3 space-y-1.5 text-xs text-slate-300">
+          <li>• <strong>Persistent Data:</strong> All data saved across sessions</li>
+          <li>• <strong>Auto-Sync:</strong> Changes saved automatically</li>
+          <li>• <strong>Data Versioning:</strong> Track changes over time</li>
+          <li>• <strong>Backup & Restore:</strong> Export/import your data</li>
+          <li>• <strong>Multi-User Support:</strong> Separate data per account</li>
+          <li>• <strong>Audit Trail:</strong> Complete activity logging</li>
+        </ul>
+        <div class="mt-4 p-3 rounded-xl bg-gradient-to-br from-emerald-600/20 to-cyan-500/20 border border-white/10">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="status-dot bg-emerald-400"></span>
+            <span class="text-sm font-semibold">Storage Status</span>
+          </div>
+          <div class="text-xs text-slate-300 space-y-0.5">
+            <div>Available: <span id="storageAvailable">—</span></div>
+            <div>Used: <span id="storageUsed">—</span></div>
+            <div>Last Sync: <span id="lastSync">Never</span></div>
+          </div>
+        </div>
+        <div class="mt-3 text-[10px] text-slate-400">
+          <strong>Note:</strong> This enhanced version uses advanced browser storage APIs to provide a backend-like experience while remaining fully client-side.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" class="flex min-h-screen hidden">
+    <!-- Sidebar -->
+    <aside class="w-72 xl:w-80 p-5 xl:p-6 glass shadow-soft">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-indigo-500 to-cyan-400 text-white font-extrabold">SSS</div>
+        <div>
+          <p class="font-extrabold text-lg tracking-tight">Sagittarius Security Service</p>
+          <p class="text-xs text-slate-400">Enhanced Storage</p>
+        </div>
+      </div>
+
+      <nav class="space-y-1">
+        <button data-section="dashboard" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-lg btn hover:brightness-110 transition glass border border-transparent">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600/20 text-indigo-300">🏠</span>
+          <span class="text-sm font-medium">Dashboard</span>
+          <span class="ml-auto text-xs text-slate-400 badge rounded-md px-2 py-0.5">Home</span>
+        </button>
+        <button data-section="incidents" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-lg btn hover:brightness-110 transition glass border border-transparent">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/20 text-amber-300">🚨</span>
+          <span class="text-sm font-medium">Incident Reports</span>
+          <span id="incidentCount" class="ml-auto text-xs text-amber-200/90 bg-amber-500/20 rounded-md px-2 py-0.5">0</span>
+        </button>
+        <button data-section="guards" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-lg btn hover:brightness-110 transition glass border border-transparent">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-300">🛡️</span>
+          <span class="text-sm font-medium">Guard Tracking</span>
+          <span class="ml-auto text-xs text-emerald-200/90 bg-emerald-500/20 rounded-md px-2 py-0.5">Live</span>
+        </button>
+        <button data-section="reports" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-lg btn hover:brightness-110 transition glass border border-transparent">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-fuchsia-500/20 text-fuchsia-300">📄</span>
+          <span class="text-sm font-medium">Reports</span>
+        </button>
+        <button data-section="settings" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-lg btn hover:brightness-110 transition glass border border-transparent">
+          <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-500/20 text-slate-300">⚙️</span>
+          <span class="text-sm font-medium">Settings</span>
+        </button>
+      </nav>
+
+      <div class="mt-8 p-4 rounded-xl bg-gradient-to-br from-indigo-600/20 to-cyan-500/20 border border-white/10">
+        <p class="text-sm font-semibold mb-1">System Health</p>
+        <div class="flex items-center gap-3">
+          <span class="status-dot bg-emerald-400"></span>
+          <span class="text-xs text-slate-300">All services operational</span>
+        </div>
+        <div class="mt-4">
+          <div class="h-2 w-full rounded-full bg-white/10 overflow-hidden">
+            <div id="uptimeBar" class="h-full w-[96%] bg-emerald-500"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400">Storage: <span id="storagePercent">—</span></p>
+        </div>
+      </div>
+
+      <div class="mt-6 p-4 rounded-xl glass border border-white/10">
+        <p class="text-sm font-semibold mb-3">Quick Actions</p>
+        <div class="flex flex-col gap-2">
+          <button id="newIncidentBtn" class="btn px-3 py-2 rounded-lg bg-indigo-600/80 hover:bg-indigo-600 text-white text-sm">Create Incident</button>
+          <button id="addGuardBtn" class="btn px-3 py-2 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 text-white text-sm">Add Guard</button>
+          <button id="syncNowBtn" class="btn px-3 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-sm">Sync Now</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 p-5 xl:p-8">
+      <!-- Top bar -->
+      <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Security Dashboard</h1>
+          <p class="text-slate-400 text-sm">Enhanced with persistent storage and data management</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <input id="globalSearch" type="search" placeholder="Search incidents, guards..."
+                   class="w-64 lg:w-80 px-10 py-2.5 rounded-lg glass border border-white/10 text-sm text-white placeholder:text-slate-500 focus:outline-none ring-brand focus:bg-white/5">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+          </div>
+          <button id="notifBtn" class="relative btn h-10 w-10 rounded-lg glass border border-white/10 hover:brightness-110">🔔
+            <span id="notifDot" class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-rose-500 ring-2 ring-slate-900"></span>
+          </button>
+          <div class="h-10 px-3 rounded-lg glass border border-white/10 flex items-center gap-3">
+            <div class="h-6 w-6 rounded-md bg-gradient-to-tr from-emerald-400 to-cyan-400"></div>
+            <div>
+              <p id="userName" class="text-xs font-semibold leading-tight">Guest</p>
+              <p id="userRole" class="text-[10px] text-slate-400 -mt-0.5">Not signed in</p>
+            </div>
+            <button id="signOutBtn" class="ml-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 text-xs">Sign out</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-6">
+        <button data-section="dashboard" class="tab-btn px-4 py-2 rounded-lg glass border border-white/10 text-sm btn">Dashboard</button>
+        <button data-section="incidents" class="tab-btn px-4 py-2 rounded-lg glass border border-white/10 text-sm btn">Incidents</button>
+        <button data-section="guards" class="tab-btn px-4 py-2 rounded-lg glass border border-white/10 text-sm btn">Guards</button>
+        <button data-section="reports" class="tab-btn px-4 py-2 rounded-lg glass border border-white/10 text-sm btn">Reports</button>
+        <button data-section="settings" class="tab-btn px-4 py-2 rounded-lg glass border border-white/10 text-sm btn">Settings</button>
+      </div>
+
+      <!-- Dashboard Section -->
+      <section id="section-dashboard" class="section">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-slate-400">Open Incidents</p>
+              <span class="text-amber-300">🚨</span>
+            </div>
+            <p id="statOpen" class="text-3xl font-extrabold mt-2">0</p>
+            <p class="text-xs text-slate-500 mt-1">Across all sites</p>
+          </div>
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-slate-400">On-Duty Guards</p>
+              <span class="text-emerald-300">🛡️</span>
+            </div>
+            <p id="statGuards" class="text-3xl font-extrabold mt-2">0</p>
+            <p class="text-xs text-slate-500 mt-1">Currently active</p>
+          </div>
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-slate-400">Data Records</p>
+              <span class="text-cyan-300">💾</span>
+            </div>
+            <p id="statRecords" class="text-3xl font-extrabold mt-2">0</p>
+            <p class="text-xs text-slate-500 mt-1">Total stored</p>
+          </div>
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-slate-400">Last Backup</p>
+              <span class="text-indigo-300">📦</span>
+            </div>
+            <p id="statBackup" class="text-lg font-extrabold mt-2">Never</p>
+            <p class="text-xs text-slate-500 mt-1">Auto-saved</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
+          <div class="xl:col-span-2 p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between mb-3">
+              <p class="font-semibold">Recent Activity</p>
+              <button id="clearActivity" class="text-xs px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10">Clear</button>
+            </div>
+            <ul id="activityFeed" class="space-y-3 max-h-64 overflow-auto hide-scrollbar"></ul>
+          </div>
+
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <div class="flex items-center justify-between mb-3">
+              <p class="font-semibold">Storage Overview</p>
+              <button id="optimizeBtn" class="text-xs px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10">Optimize</button>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Incidents</span>
+                  <span id="incidentStorage">0 KB</span>
+                </div>
+                <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div id="incidentStorageBar" class="h-full bg-amber-500 w-0"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Guards</span>
+                  <span id="guardStorage">0 KB</span>
+                </div>
+                <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div id="guardStorageBar" class="h-full bg-emerald-500 w-0"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Activity</span>
+                  <span id="activityStorage">0 KB</span>
+                </div>
+                <div class="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div id="activityStorageBar" class="h-full bg-cyan-500 w-0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Management Section -->
+      <section id="section-data" class="section hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <h3 class="font-semibold mb-4">Data Storage</h3>
+            <div class="space-y-4">
+              <div class="p-4 rounded-lg bg-white/5">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium">Storage Usage</span>
+                  <span id="totalStorage" class="text-xs text-slate-400">0 KB</span>
+                </div>
+                <div class="h-3 bg-white/10 rounded-full overflow-hidden">
+                  <div id="totalStorageBar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 w-0"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400">
+                  <span id="storageLimit">5 MB available</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  <div class="text-emerald-300 text-xs">Records Stored</div>
+                  <div id="totalRecords" class="text-lg font-bold">0</div>
+                </div>
+                <div class="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+                  <div class="text-cyan-300 text-xs">Last Sync</div>
+                  <div id="lastSyncTime" class="text-lg font-bold">Never</div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button id="manualSyncBtn" class="btn px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm">Manual Sync</button>
+                <button id="clearCacheBtn" class="btn px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm">Clear Cache</button>
+                <button id="compactBtn" class="btn px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">Compact Data</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+            <h3 class="font-semibold mb-4">Backup & Restore</h3>
+            <div class="space-y-4">
+              <div class="p-4 rounded-lg bg-white/5">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium">Auto Backup</span>
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input id="autoBackupToggle" type="checkbox" class="peer sr-only" checked>
+                    <span class="w-11 h-6 bg-white/10 rounded-full peer-checked:bg-emerald-500 relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></span>
+                  </label>
+                </div>
+                <div class="text-xs text-slate-400">
+                  Automatically backup data every 24 hours
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <button id="fullBackupBtn" class="w-full btn px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">Full Backup (Download)</button>
+                <button id="incrementalBackupBtn" class="w-full btn px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white">Incremental Backup</button>
+                <label class="relative w-full inline-flex items-center justify-center overflow-hidden">
+                  <input id="restoreFileInput" type="file" accept="application/json" class="absolute inset-0 opacity-0 cursor-pointer">
+                  <span class="w-full px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-center">Restore from File</span>
+                </label>
+              </div>
+
+              <div class="p-3 rounded-lg bg-slate-500/10 border border-slate-500/20">
+                <div class="text-slate-300 text-xs mb-1">Recent Backups</div>
+                <ul id="backupHistory" class="text-xs text-slate-400 space-y-1">
+                  <li>No backups yet</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 p-5 rounded-xl glass border border-white/10 shadow-soft">
+          <h3 class="font-semibold mb-4">Data Analytics</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-lg bg-white/5">
+              <h4 class="text-sm font-medium mb-3">Incident Trends</h4>
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                  <span>This Week</span>
+                  <span id="incidentsThisWeek">0</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Last Week</span>
+                  <span id="incidentsLastWeek">0</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Growth</span>
+                  <span id="incidentGrowth" class="text-emerald-400">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-lg bg-white/5">
+              <h4 class="text-sm font-medium mb-3">Guard Activity</h4>
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                  <span>Active Today</span>
+                  <span id="guardsActiveToday">0</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Total Guards</span>
+                  <span id="totalGuards">0</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Utilization</span>
+                  <span id="guardUtilization" class="text-cyan-400">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-lg bg-white/5">
+              <h4 class="text-sm font-medium mb-3">System Performance</h4>
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                  <span>Avg Response</span>
+                  <span id="avgResponseTime">0ms</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Uptime</span>
+                  <span id="systemUptime" class="text-emerald-400">99.9%</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>Data Integrity</span>
+                  <span id="dataIntegrity" class="text-emerald-400">100%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Other sections remain the same as previous version -->
+      <section id="section-incidents" class="section hidden">
+        <div class="p-5 rounded-xl glass border border-white/10 shadow-soft mb-4">
+          <div class="flex items-center justify-between">
+            <p class="font-semibold">Log New Incident</p>
+            <button id="demoFillIncident" class="text-xs px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10">Demo Fill</button>
+          </div>
+          <form id="incidentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-slate-400">Title</label>
+              <input required name="title" placeholder="e.g., Unauthorized access attempt"
+                     class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand">
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-slate-400">Severity</label>
+              <select name="severity" class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand">
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+                <option>Critical</option>
+              </select>
+            </div>
+            <div class="md:col-span-2 flex flex-col gap-1.5">
+              <label class="text-xs text-slate-400">Description</label>
+              <textarea required name="description" rows="3" placeholder="What happened?"
+                        class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand"></textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-slate-400">Location</label>
+                <input name="location" placeholder="Main Gate, Bldg A..."
+                       class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand">
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-slate-400">Assigned Guard</label>
+                <select name="assigned" class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand"></select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-slate-400">Status</label>
+                <select name="status" class="px-3 py-2 rounded-lg glass border border-white/10 text-white focus:outline-none ring-brand">
+                  <option>Open</option>
+                  <option>Investigating</option>
+                  <option>Resolved</option>
+                </select>
+              </div>
+            </div>
+            <div class="md:col-span-2 flex items-center gap-3">
+              <button class="btn px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white">Submit</button>
+              <p id="incidentMsg" class="text-xs text-slate-400"></p>
+            </div>
+          </form>
+        </div>
+
+        <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-semibold">Incidents</p>
+            <div class="flex items-center gap-2">
+              <button id="exportIncidentsCsv" class="text-xs px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10">Export CSV</button>
+              <select id="filterSeverity" class="px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white">
+                <option value="">All severities</option>
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+                <option>Critical</option>
+              </select>
+              <select id="filterStatus" class="px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white">
+                <option value="">All status</option>
+                <option>Open</option>
+                <option>Investigating</option>
+                <option>Resolved</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-auto hide-scrollbar">
+            <table class="w-full text-sm">
+              <thead class="text-slate-400">
+                <tr class="text-left">
+                  <th class="py-3 pr-3 font-medium">Title</th>
+                  <th class="py-3 pr-3 font-medium">Severity</th>
+                  <th class="py-3 pr-3 font-medium">Location</th>
+                  <th class="py-3 pr-3 font-medium">Assigned</th>
+                  <th class="py-3 pr-3 font-medium">Status</th>
+                  <th class="py-3 pr-3 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incidentTable" class="align-top"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-guards" class="section hidden">
+        <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-semibold">Guards</p>
+            <button id="addGuardBtn2" class="text-xs px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white">Add Guard</button>
+          </div>
+          <ul id="guardList" class="space-y-3"></ul>
+        </div>
+      </section>
+
+      <section id="section-reports" class="section hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
+          <div class="p-4 rounded-xl glass border border-white/10 shadow-soft">
+            <h3 class="font-semibold mb-3">Report Types</h3>
+            <div class="space-y-2">
+              <button id="incidentReportBtn" class="w-full btn px-3 py-2 rounded-lg bg-amber-600/80 hover:bg-amber-600 text-white text-sm">Incident Summary</button>
+              <button id="guardReportBtn" class="w-full btn px-3 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-sm">Guard Activity</button>
+              <button id="systemLogsBtn" class="w-full btn px-3 py-2 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 text-white text-sm">System Logs</button>
+              <button id="auditTrailBtn" class="w-full btn px-3 py-2 rounded-lg bg-indigo-600/80 hover:bg-indigo-600 text-white text-sm">Audit Trail</button>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl glass border border-white/10 shadow-soft">
+            <h3 class="font-semibold mb-3">Export Options</h3>
+            <div class="space-y-2">
+              <button id="exportPdfBtn" class="w-full btn px-3 py-2 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white text-sm">📄 Export PDF</button>
+              <button id="exportCsvBtn" class="w-full btn px-3 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-sm">📊 Export CSV</button>
+              <button id="exportJsonBtn" class="w-full btn px-3 py-2 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white text-sm">📋 Export JSON</button>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl glass border border-white/10 shadow-soft">
+            <h3 class="font-semibold mb-3">Quick Stats</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Total Incidents:</span>
+                <span id="reportIncidentCount">0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Active Guards:</span>
+                <span id="reportGuardCount">0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">System Events:</span>
+                <span id="reportLogCount">0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Last Activity:</span>
+                <span id="reportLastActivity">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Logs Section -->
+        <div id="systemLogsSection" class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <h3 class="font-semibold">System Logs</h3>
+              <span id="logStatus" class="px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 text-xs">Live</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="logLevelFilter" class="px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white">
+                <option value="">All Levels</option>
+                <option value="INFO">Info</option>
+                <option value="WARN">Warning</option>
+                <option value="ERROR">Error</option>
+                <option value="DEBUG">Debug</option>
+              </select>
+              <select id="logCategoryFilter" class="px-3 py-1.5 rounded-lg glass border border-white/10 text-sm text-white">
+                <option value="">All Categories</option>
+                <option value="AUTH">Authentication</option>
+                <option value="STORAGE">Storage</option>
+                <option value="INCIDENT">Incidents</option>
+                <option value="GUARD">Guards</option>
+                <option value="SYSTEM">System</option>
+              </select>
+              <button id="clearLogsBtn" class="px-3 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white text-sm">Clear Logs</button>
+              <button id="exportLogsBtn" class="px-3 py-1.5 rounded-lg bg-cyan-600/80 hover:bg-cyan-600 text-white text-sm">Export</button>
+            </div>
+          </div>
+
+          <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <div class="text-blue-300 text-xs">Info Logs</div>
+              <div id="infoLogCount" class="text-lg font-bold">0</div>
+            </div>
+            <div class="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <div class="text-amber-300 text-xs">Warnings</div>
+              <div id="warnLogCount" class="text-lg font-bold">0</div>
+            </div>
+            <div class="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20">
+              <div class="text-rose-300 text-xs">Errors</div>
+              <div id="errorLogCount" class="text-lg font-bold">0</div>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-500/10 border border-slate-500/20">
+              <div class="text-slate-300 text-xs">Debug</div>
+              <div id="debugLogCount" class="text-lg font-bold">0</div>
+            </div>
+          </div>
+
+          <div class="bg-black/20 rounded-lg p-4 font-mono text-sm max-h-96 overflow-auto hide-scrollbar">
+            <div id="systemLogsList" class="space-y-1"></div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
+            <span>Showing <span id="visibleLogCount">0</span> of <span id="totalLogCount">0</span> logs</span>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1">
+                <input id="autoScrollLogs" type="checkbox" checked class="rounded">
+                Auto-scroll
+              </label>
+              <button id="refreshLogsBtn" class="px-2 py-1 rounded bg-white/5 hover:bg-white/10">Refresh</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Content Area -->
+        <div id="reportContent" class="mt-4 p-5 rounded-xl glass border border-white/10 shadow-soft hidden">
+          <div class="flex items-center justify-between mb-4">
+            <h3 id="reportTitle" class="font-semibold">Report</h3>
+            <button id="closeReportBtn" class="text-slate-400 hover:text-white">✕</button>
+          </div>
+          <div id="reportBody" class="text-slate-300">
+            Select a report type to view detailed information.
+          </div>
+        </div>
+      </section>
+
+      <section id="section-settings" class="section hidden">
+        <div class="p-5 rounded-xl glass border border-white/10 shadow-soft">
+          <p class="font-semibold">Settings</p>
+          <div class="mt-4 space-y-4">
+            <div class="flex items-center justify-between py-2">
+              <span class="text-sm text-slate-300">Auto-sync enabled</span>
+              <label class="inline-flex items-center cursor-pointer">
+                <input id="autoSyncToggle" type="checkbox" class="peer sr-only" checked>
+                <span class="w-11 h-6 bg-white/10 rounded-full peer-checked:bg-emerald-500 relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></span>
+              </label>
+            </div>
+            <div class="flex items-center justify-between py-2">
+              <span class="text-sm text-slate-300">Data compression</span>
+              <label class="inline-flex items-center cursor-pointer">
+                <input id="compressionToggle" type="checkbox" class="peer sr-only" checked>
+                <span class="w-11 h-6 bg-white/10 rounded-full peer-checked:bg-emerald-500 relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:h-5 after:w-5 after:rounded-full after:transition-all peer-checked:after:translate-x-5"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-slate-900/90 border border-white/10 text-sm shadow-soft hidden z-50">Saved</div>
+
+  <script>
+    // Enhanced Storage System - Simulates backend-like functionality
+    class EnhancedStorage {
+      constructor() {
+        this.dbName = 'SagittariusSecurityDB';
+        this.version = 1;
+        this.db = null;
+        this.syncQueue = [];
+        this.lastSync = null;
+        this.autoSyncEnabled = true;
+        this.compressionEnabled = true;
+        this.init();
+      }
+
+      async init() {
+        try {
+          // Initialize IndexedDB for more robust storage
+          if ('indexedDB' in window) {
+            await this.initIndexedDB();
+          }
+          this.startAutoSync();
+          this.updateStorageInfo();
+        } catch (error) {
+          console.warn('Enhanced storage initialization failed, falling back to localStorage');
+        }
+      }
+
+      async initIndexedDB() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(this.dbName, this.version);
+          
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            this.db = request.result;
+            resolve();
+          };
+          
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            
+            // Create object stores
+            if (!db.objectStoreNames.contains('incidents')) {
+              db.createObjectStore('incidents', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('guards')) {
+              db.createObjectStore('guards', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('activity')) {
+              db.createObjectStore('activity', { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains('metadata')) {
+              db.createObjectStore('metadata', { keyPath: 'key' });
+            }
+          };
+        });
+      }
+
+      async save(storeName, data) {
+        try {
+          if (this.db) {
+            const transaction = this.db.transaction([storeName], 'readwrite');
+            const store = transaction.objectStore(storeName);
+            
+            if (Array.isArray(data)) {
+              for (const item of data) {
+                await store.put(item);
+              }
+            } else {
+              await store.put(data);
+            }
+            
+            this.addToSyncQueue(storeName, data);
+            this.updateLastSync();
+          } else {
+            // Fallback to localStorage
+            const key = `${this.dbName}_${storeName}`;
+            const compressed = this.compressionEnabled ? this.compress(JSON.stringify(data)) : JSON.stringify(data);
+            localStorage.setItem(key, compressed);
+          }
+          
+          this.updateStorageInfo();
+          return true;
+        } catch (error) {
+          console.error('Save failed:', error);
+          return false;
+        }
+      }
+
+      async load(storeName) {
+        try {
+          if (this.db) {
+            const transaction = this.db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            
+            return new Promise((resolve) => {
+              request.onsuccess = () => resolve(request.result || []);
+              request.onerror = () => resolve([]);
+            });
+          } else {
+            // Fallback to localStorage
+            const key = `${this.dbName}_${storeName}`;
+            const data = localStorage.getItem(key);
+            if (data) {
+              const decompressed = this.compressionEnabled ? this.decompress(data) : data;
+              return JSON.parse(decompressed);
+            }
+            return [];
+          }
+        } catch (error) {
+          console.error('Load failed:', error);
+          return [];
+        }
+      }
+
+      compress(data) {
+        // Simple compression simulation
+        return btoa(data);
+      }
+
+      decompress(data) {
+        try {
+          return atob(data);
+        } catch {
+          return data; // Return as-is if not compressed
+        }
+      }
+
+      addToSyncQueue(storeName, data) {
+        this.syncQueue.push({
+          id: crypto.randomUUID(),
+          storeName,
+          data,
+          timestamp: Date.now(),
+          action: 'save'
+        });
+      }
+
+      async sync() {
+        if (!this.autoSyncEnabled || this.syncQueue.length === 0) return;
+
+        try {
+          // Simulate network sync
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Process sync queue
+          const processed = [];
+          for (const item of this.syncQueue) {
+            // Simulate successful sync
+            processed.push(item.id);
+          }
+          
+          // Remove processed items
+          this.syncQueue = this.syncQueue.filter(item => !processed.includes(item.id));
+          
+          this.updateLastSync();
+          this.updateSyncStatus('success');
+          
+          return true;
+        } catch (error) {
+          this.updateSyncStatus('error');
+          return false;
+        }
+      }
+
+      startAutoSync() {
+        setInterval(() => {
+          if (this.autoSyncEnabled) {
+            this.sync();
+          }
+        }, 30000); // Sync every 30 seconds
+      }
+
+      updateLastSync() {
+        this.lastSync = new Date();
+        const elements = document.querySelectorAll('#lastSync, #lastSyncTime');
+        elements.forEach(el => {
+          if (el) el.textContent = this.lastSync.toLocaleTimeString();
+        });
+      }
+
+      updateSyncStatus(status) {
+        const syncStatus = document.getElementById('syncStatus');
+        if (syncStatus) {
+          syncStatus.className = `ml-auto text-xs sync-indicator sync-${status}`;
+          syncStatus.textContent = status === 'success' ? '●' : status === 'error' ? '⚠' : '○';
+        }
+      }
+
+      async getStorageInfo() {
+        let totalSize = 0;
+        const breakdown = {};
+
+        try {
+          if (this.db) {
+            // Calculate IndexedDB usage
+            const stores = ['incidents', 'guards', 'activity', 'metadata'];
+            for (const storeName of stores) {
+              const data = await this.load(storeName);
+              const size = new Blob([JSON.stringify(data)]).size;
+              breakdown[storeName] = size;
+              totalSize += size;
+            }
+          } else {
+            // Calculate localStorage usage
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith(this.dbName)) {
+                const value = localStorage.getItem(key);
+                const size = new Blob([value]).size;
+                const storeName = key.replace(`${this.dbName}_`, '');
+                breakdown[storeName] = size;
+                totalSize += size;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Storage info calculation failed:', error);
+        }
+
+        return { totalSize, breakdown };
+      }
+
+      async updateStorageInfo() {
+        const info = await this.getStorageInfo();
+        const formatSize = (bytes) => {
+          if (bytes < 1024) return bytes + ' B';
+          if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+          return Math.round(bytes / (1024 * 1024)) + ' MB';
+        };
+
+        // Update UI elements
+        const elements = {
+          totalStorage: formatSize(info.totalSize),
+          storageUsed: formatSize(info.totalSize),
+          storageAvailable: formatSize(5 * 1024 * 1024 - info.totalSize), // 5MB limit
+          storagePercent: Math.round((info.totalSize / (5 * 1024 * 1024)) * 100) + '%'
+        };
+
+        Object.entries(elements).forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value;
+        });
+
+        // Update storage bars
+        const maxSize = Math.max(...Object.values(info.breakdown));
+        Object.entries(info.breakdown).forEach(([store, size]) => {
+          const bar = document.getElementById(`${store}StorageBar`);
+          const label = document.getElementById(`${store}Storage`);
+          if (bar) bar.style.width = maxSize > 0 ? (size / maxSize * 100) + '%' : '0%';
+          if (label) label.textContent = formatSize(size);
+        });
+
+        // Update total storage bar
+        const totalBar = document.getElementById('totalStorageBar');
+        if (totalBar) {
+          totalBar.style.width = (info.totalSize / (5 * 1024 * 1024) * 100) + '%';
+        }
+      }
+
+      async backup(type = 'full') {
+        try {
+          const data = {
+            version: this.version,
+            timestamp: new Date().toISOString(),
+            type: type,
+            data: {}
+          };
+
+          if (type === 'full') {
+            data.data.incidents = await this.load('incidents');
+            data.data.guards = await this.load('guards');
+            data.data.activity = await this.load('activity');
+            data.data.metadata = await this.load('metadata');
+          } else {
+            // Incremental backup - only recent changes
+            const since = new Date(Date.now() - 24 * 60 * 60 * 1000); // Last 24 hours
+            data.data.recent = this.syncQueue.filter(item => item.timestamp > since.getTime());
+          }
+
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `sagittarius-security-${type}-backup-${new Date().toISOString().slice(0, 10)}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+
+          this.addBackupToHistory(type);
+          return true;
+        } catch (error) {
+          console.error('Backup failed:', error);
+          return false;
+        }
+      }
+
+      addBackupToHistory(type) {
+        const history = document.getElementById('backupHistory');
+        if (history) {
+          const item = document.createElement('li');
+          item.textContent = `${type} backup - ${new Date().toLocaleString()}`;
+          history.insertBefore(item, history.firstChild);
+          
+          // Keep only last 5 entries
+          while (history.children.length > 5) {
+            history.removeChild(history.lastChild);
+          }
+        }
+      }
+
+      async restore(file) {
+        try {
+          const text = await file.text();
+          const backup = JSON.parse(text);
+          
+          if (backup.type === 'full') {
+            // Restore full backup
+            for (const [storeName, data] of Object.entries(backup.data)) {
+              if (Array.isArray(data)) {
+                for (const item of data) {
+                  await this.save(storeName, item);
+                }
+              }
+            }
+          } else {
+            // Restore incremental backup
+            for (const item of backup.data.recent || []) {
+              await this.save(item.storeName, item.data);
+            }
+          }
+
+          this.updateStorageInfo();
+          return true;
+        } catch (error) {
+          console.error('Restore failed:', error);
+          return false;
+        }
+      }
+
+      async optimize() {
+        try {
+          // Remove old activity logs
+          const activities = await this.load('activity');
+          const recent = activities.slice(0, 100); // Keep only 100 most recent
+          await this.save('activity', recent);
+
+          // Compact data
+          await this.sync();
+          
+          this.updateStorageInfo();
+          return true;
+        } catch (error) {
+          console.error('Optimization failed:', error);
+          return false;
+        }
+      }
+    }
+
+    // Initialize enhanced storage
+    const storage = new EnhancedStorage();
+
+    // Global auth state
+    const auth = {
+      currentUser: null,
+      accounts: [
+        { name: 'Admin User', badge: 'ADMIN-001', role: 'admin', password: 'admin123' },
+        { name: 'Staff User', badge: 'STAFF-001', role: 'staff', password: 'staff123' }
+      ]
+    };
+
+    // App State
+    const state = {
+      incidents: [],
+      guards: [
+        { id: crypto.randomUUID(), name: 'J. Carter', badge: 'A-102', phone: '(555) 123-4567', status: 'On-duty', shift:'Day', location:'Main Gate', x: 20, y: 35, createdAt: new Date().toISOString() },
+        { id: crypto.randomUUID(), name: 'M. Silva',  badge: 'B-224', phone: '(555) 234-5678', status: 'On-duty', shift:'Night', location:'Parking Lot B', x: 60, y: 55, createdAt: new Date().toISOString() },
+        { id: crypto.randomUUID(), name: 'D. Patel',  badge: 'C-331', phone: '(555) 345-6789', status: 'Break',   shift:'Day', location:'South Entrance', x: 75, y: 20, createdAt: new Date().toISOString() }
+      ],
+      locations: ['Main Gate','North Wing','South Entrance','Warehouse','Parking Lot B'],
+      activity: [],
+      systemLogs: [],
+      notifications: 2,
+      settings: { autoSync: true, compression: true }
+    };
+
+    // System Logger
+    class SystemLogger {
+      constructor() {
+        this.logs = [];
+        this.maxLogs = 1000;
+        this.autoScroll = true;
+      }
+
+      log(level, category, message, details = null) {
+        const logEntry = {
+          id: crypto.randomUUID(),
+          timestamp: new Date().toISOString(),
+          level: level.toUpperCase(),
+          category: category.toUpperCase(),
+          message,
+          details,
+          user: auth.currentUser?.badge || 'SYSTEM'
+        };
+
+        this.logs.unshift(logEntry);
+        state.systemLogs.unshift(logEntry);
+
+        // Keep only max logs
+        if (this.logs.length > this.maxLogs) {
+          this.logs = this.logs.slice(0, this.maxLogs);
+          state.systemLogs = state.systemLogs.slice(0, this.maxLogs);
+        }
+
+        // Save to storage
+        storage.save('systemLogs', logEntry);
+
+        // Update UI if on reports page
+        this.updateLogDisplay();
+
+        return logEntry;
+      }
+
+      info(category, message, details) {
+        return this.log('INFO', category, message, details);
+      }
+
+      warn(category, message, details) {
+        return this.log('WARN', category, message, details);
+      }
+
+      error(category, message, details) {
+        return this.log('ERROR', category, message, details);
+      }
+
+      debug(category, message, details) {
+        return this.log('DEBUG', category, message, details);
+      }
+
+      updateLogDisplay() {
+        const logsList = document.getElementById('systemLogsList');
+        if (!logsList) return;
+
+        const levelFilter = document.getElementById('logLevelFilter')?.value || '';
+        const categoryFilter = document.getElementById('logCategoryFilter')?.value || '';
+
+        let filteredLogs = this.logs;
+        if (levelFilter) filteredLogs = filteredLogs.filter(log => log.level === levelFilter);
+        if (categoryFilter) filteredLogs = filteredLogs.filter(log => log.category === categoryFilter);
+
+        logsList.innerHTML = filteredLogs.slice(0, 100).map(log => {
+          const time = new Date(log.timestamp).toLocaleTimeString();
+          const levelColor = {
+            'INFO': 'text-blue-300',
+            'WARN': 'text-amber-300',
+            'ERROR': 'text-rose-300',
+            'DEBUG': 'text-slate-400'
+          }[log.level] || 'text-slate-300';
+
+          return `
+            <div class="flex items-start gap-2 text-xs">
+              <span class="text-slate-500 font-mono">${time}</span>
+              <span class="${levelColor} font-semibold min-w-[50px]">${log.level}</span>
+              <span class="text-cyan-400 min-w-[80px]">[${log.category}]</span>
+              <span class="text-slate-300 flex-1">${log.message}</span>
+              <span class="text-slate-500">${log.user}</span>
+            </div>
+          `;
+        }).join('');
+
+        // Update counts
+        const counts = {
+          INFO: this.logs.filter(l => l.level === 'INFO').length,
+          WARN: this.logs.filter(l => l.level === 'WARN').length,
+          ERROR: this.logs.filter(l => l.level === 'ERROR').length,
+          DEBUG: this.logs.filter(l => l.level === 'DEBUG').length
+        };
+
+        document.getElementById('infoLogCount').textContent = counts.INFO;
+        document.getElementById('warnLogCount').textContent = counts.WARN;
+        document.getElementById('errorLogCount').textContent = counts.ERROR;
+        document.getElementById('debugLogCount').textContent = counts.DEBUG;
+        document.getElementById('totalLogCount').textContent = this.logs.length;
+        document.getElementById('visibleLogCount').textContent = filteredLogs.length;
+
+        // Auto-scroll if enabled
+        if (this.autoScroll && document.getElementById('autoScrollLogs')?.checked) {
+          logsList.scrollTop = 0;
+        }
+      }
+
+      exportLogs(format = 'json') {
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        let content, filename, mimeType;
+
+        if (format === 'json') {
+          content = JSON.stringify(this.logs, null, 2);
+          filename = `system-logs-${timestamp}.json`;
+          mimeType = 'application/json';
+        } else if (format === 'csv') {
+          const headers = ['Timestamp', 'Level', 'Category', 'Message', 'User', 'Details'];
+          const rows = this.logs.map(log => [
+            log.timestamp,
+            log.level,
+            log.category,
+            log.message.replace(/"/g, '""'),
+            log.user,
+            log.details ? JSON.stringify(log.details).replace(/"/g, '""') : ''
+          ]);
+          content = [headers, ...rows].map(row => 
+            row.map(cell => `"${cell}"`).join(',')
+          ).join('\n');
+          filename = `system-logs-${timestamp}.csv`;
+          mimeType = 'text/csv';
+        }
+
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      clearLogs() {
+        this.logs = [];
+        state.systemLogs = [];
+        storage.save('systemLogs', []);
+        this.updateLogDisplay();
+      }
+    }
+
+    // Initialize logger
+    const logger = new SystemLogger();
+
+    // Helper functions
+    const fmtTime = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const addActivity = (text) => {
+      const item = { id: crypto.randomUUID(), text, time: fmtTime(), timestamp: Date.now() };
+      state.activity.unshift(item);
+      storage.save('activity', item);
+      renderActivity();
+    };
+
+    const showToast = (msg) => {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = msg || 'Saved';
+      toast.classList.remove('hidden');
+      toast.style.opacity = '0';
+      toast.style.transform = 'translate(-50%, 8px)';
+      requestAnimationFrame(() => {
+        toast.style.transition = 'opacity .2s ease, transform .2s ease';
+        toast.style.opacity = '1';
+        toast.style.transform = 'translate(-50%, 0)';
+      });
+      clearTimeout(showToast._h);
+      showToast._h = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, 8px)';
+        setTimeout(() => toast.classList.add('hidden'), 220);
+      }, 1500);
+    };
+
+    // Render functions
+    function renderCounts() {
+      const openIncidents = state.incidents.filter(i => i.status !== 'Resolved').length;
+      const onDutyGuards = state.guards.filter(g => g.status !== 'Offline').length;
+      const totalRecords = state.incidents.length + state.guards.length + state.activity.length;
+
+      document.getElementById('statOpen').textContent = openIncidents;
+      document.getElementById('statGuards').textContent = onDutyGuards;
+      document.getElementById('statRecords').textContent = totalRecords;
+      document.getElementById('totalRecords').textContent = totalRecords;
+      document.getElementById('incidentCount').textContent = openIncidents;
+
+      // Update analytics
+      document.getElementById('incidentsThisWeek').textContent = state.incidents.filter(i => {
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        return new Date(i.createdAt) > weekAgo;
+      }).length;
+
+      document.getElementById('guardsActiveToday').textContent = onDutyGuards;
+      document.getElementById('totalGuards').textContent = state.guards.length;
+      
+      const utilization = state.guards.length > 0 ? Math.round((onDutyGuards / state.guards.length) * 100) : 0;
+      document.getElementById('guardUtilization').textContent = utilization + '%';
+    }
+
+    function renderActivity() {
+      const feed = document.getElementById('activityFeed');
+      if (!feed) return;
+      
+      feed.innerHTML = state.activity.slice(0, 12).map(a => `
+        <li class="flex items-start gap-3">
+          <span class="mt-1 h-2 w-2 rounded-full bg-cyan-400"></span>
+          <div>
+            <p class="text-sm">${a.text}</p>
+            <p class="text-[11px] text-slate-400">${a.time}</p>
+          </div>
+        </li>`).join('');
+    }
+
+    function renderGuardList() {
+      const list = document.getElementById('guardList');
+      if (!list) return;
+
+      list.innerHTML = state.guards.map(g => `
+        <li class="p-3 rounded-lg bg-white/5 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="h-8 w-8 rounded-md bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center">🛡️</span>
+            <div>
+              <p class="text-sm font-semibold">${g.name} <span class="text-xs text-slate-400">(${g.badge})</span></p>
+              <p class="text-xs text-slate-400">${g.status} • ${g.location || 'No location'}</p>
+              ${g.phone ? `<p class="text-xs text-slate-500">📞 ${g.phone}</p>` : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2.5 w-2.5 rounded-full ${g.status === 'On-duty' ? 'bg-emerald-400' : g.status === 'Break' ? 'bg-amber-400' : 'bg-rose-400'}"></span>
+            ${g.phone ? `<button data-guard-call="${g.id}" class="px-2 py-1 rounded-md bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs">📞 Call</button>` : ''}
+            <button data-guard-delete="${g.id}" class="px-2 py-1 rounded-md bg-rose-600/80 hover:bg-rose-600 text-white text-xs">Delete</button>
+          </div>
+        </li>`).join('');
+    }
+
+    function renderIncidents() {
+      const table = document.getElementById('incidentTable');
+      if (!table) return;
+
+      table.innerHTML = state.incidents.map(i => `
+        <tr class="border-b border-white/5">
+          <td class="py-3 pr-3">
+            <p class="font-semibold">${i.title}</p>
+            <p class="text-xs text-slate-400">${i.description}</p>
+          </td>
+          <td class="py-3 pr-3">
+            <span class="px-2 py-1 rounded-md text-xs ${
+              i.severity === 'Critical' ? 'bg-rose-500/20 text-rose-200' :
+              i.severity === 'High' ? 'bg-amber-500/20 text-amber-200' :
+              i.severity === 'Medium' ? 'bg-cyan-500/20 text-cyan-200' :
+              'bg-emerald-500/20 text-emerald-200'
+            }">${i.severity}</span>
+          </td>
+          <td class="py-3 pr-3">${i.location || '—'}</td>
+          <td class="py-3 pr-3">${i.assigned || '—'}</td>
+          <td class="py-3 pr-3">
+            <span class="px-2 py-1 rounded-md text-xs ${
+              i.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-200' :
+              i.status === 'Investigating' ? 'bg-indigo-500/20 text-indigo-200' :
+              'bg-amber-500/20 text-amber-200'
+            }">${i.status}</span>
+          </td>
+          <td class="py-3 pr-3">
+            <button data-resolve="${i.id}" class="px-2 py-1 rounded-md bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs">Resolve</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderAll() {
+      renderCounts();
+      renderActivity();
+      renderGuardList();
+      renderIncidents();
+      storage.updateStorageInfo();
+    }
+
+    // Navigation
+    function showSection(name) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.toggle('hidden', !section.id.includes(name));
+      });
+      document.querySelectorAll('.tab-btn, .nav-link').forEach(btn => {
+        btn.classList.toggle('tab-active', btn.dataset.section === name);
+      });
+      addActivity(`Opened ${name.charAt(0).toUpperCase()+name.slice(1)}.`);
+    }
+
+    // Event listeners
+    document.querySelectorAll('[data-section]').forEach(btn => {
+      btn.addEventListener('click', () => showSection(btn.dataset.section));
+    });
+
+    // Auth handlers
+    document.getElementById('tabSignIn').addEventListener('click', () => {
+      document.getElementById('tabSignIn').classList.add('tab-active');
+      document.getElementById('tabSignUp').classList.remove('tab-active');
+      document.getElementById('formSignIn').classList.remove('hidden');
+      document.getElementById('formSignUp').classList.add('hidden');
+    });
+
+    document.getElementById('tabSignUp').addEventListener('click', () => {
+      document.getElementById('tabSignUp').classList.add('tab-active');
+      document.getElementById('tabSignIn').classList.remove('tab-active');
+      document.getElementById('formSignUp').classList.remove('hidden');
+      document.getElementById('formSignIn').classList.add('hidden');
+    });
+
+    function completeSignIn(profile) {
+      auth.currentUser = profile;
+      document.getElementById('userName').textContent = profile.name;
+      document.getElementById('userRole').textContent = profile.role === 'admin' ? 'Admin' : 'Staff';
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('appShell').classList.remove('hidden');
+      addActivity(`Signed in as ${profile.name} (${profile.role}).`);
+      renderAll();
+      showSection('dashboard');
+    }
+
+    document.getElementById('formSignIn').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const badge = fd.get('badge').trim();
+      const password = fd.get('password').trim();
+      
+      const account = auth.accounts.find(acc => acc.badge === badge && acc.password === password);
+      if (account) {
+        completeSignIn({ name: account.name, badge: account.badge, role: account.role });
+      } else {
+        showToast('Invalid credentials');
+      }
+    });
+
+    document.getElementById('formSignUp').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const name = fd.get('name').trim();
+      const badge = fd.get('badge').trim();
+      const password = fd.get('password').trim();
+      const role = fd.get('role');
+      
+      if (auth.accounts.find(acc => acc.badge === badge)) {
+        showToast('Badge ID already exists');
+        return;
+      }
+      
+      const newAccount = { name, badge, role, password };
+      auth.accounts.push(newAccount);
+      completeSignIn({ name, badge, role });
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', () => {
+      auth.currentUser = null;
+      document.getElementById('userName').textContent = 'Guest';
+      document.getElementById('userRole').textContent = 'Not signed in';
+      document.getElementById('appShell').classList.add('hidden');
+      document.getElementById('authGate').classList.remove('hidden');
+      addActivity('Signed out.');
+    });
+
+    // Data management handlers
+    document.getElementById('syncNowBtn').addEventListener('click', async () => {
+      const success = await storage.sync();
+      showToast(success ? 'Sync completed' : 'Sync failed');
+    });
+
+    document.getElementById('manualSyncBtn').addEventListener('click', async () => {
+      const success = await storage.sync();
+      showToast(success ? 'Manual sync completed' : 'Sync failed');
+    });
+
+    document.getElementById('fullBackupBtn').addEventListener('click', async () => {
+      const success = await storage.backup('full');
+      showToast(success ? 'Backup downloaded' : 'Backup failed');
+    });
+
+    document.getElementById('incrementalBackupBtn').addEventListener('click', async () => {
+      const success = await storage.backup('incremental');
+      showToast(success ? 'Incremental backup downloaded' : 'Backup failed');
+    });
+
+    document.getElementById('restoreFileInput').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      const success = await storage.restore(file);
+      if (success) {
+        // Reload state from storage
+        state.incidents = await storage.load('incidents');
+        state.guards = await storage.load('guards');
+        state.activity = await storage.load('activity');
+        renderAll();
+        showToast('Restore completed');
+      } else {
+        showToast('Restore failed');
+      }
+      e.target.value = '';
+    });
+
+    document.getElementById('optimizeBtn').addEventListener('click', async () => {
+      const success = await storage.optimize();
+      showToast(success ? 'Storage optimized' : 'Optimization failed');
+    });
+
+    document.getElementById('clearCacheBtn').addEventListener('click', () => {
+      if (confirm('Clear all cached data? This cannot be undone.')) {
+        localStorage.clear();
+        if (storage.db) {
+          indexedDB.deleteDatabase(storage.dbName);
+        }
+        showToast('Cache cleared');
+        setTimeout(() => location.reload(), 1000);
+      }
+    });
+
+    document.getElementById('compactBtn').addEventListener('click', async () => {
+      await storage.optimize();
+      showToast('Data compacted');
+    });
+
+    // Settings handlers
+    document.getElementById('autoSyncToggle').addEventListener('change', (e) => {
+      storage.autoSyncEnabled = e.target.checked;
+      state.settings.autoSync = e.target.checked;
+      addActivity(`Auto-sync ${e.target.checked ? 'enabled' : 'disabled'}.`);
+    });
+
+    document.getElementById('compressionToggle').addEventListener('change', (e) => {
+      storage.compressionEnabled = e.target.checked;
+      state.settings.compression = e.target.checked;
+      addActivity(`Data compression ${e.target.checked ? 'enabled' : 'disabled'}.`);
+    });
+
+    document.getElementById('autoBackupToggle').addEventListener('change', (e) => {
+      addActivity(`Auto-backup ${e.target.checked ? 'enabled' : 'disabled'}.`);
+    });
+
+    // Incident form handler
+    document.getElementById('incidentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const incident = {
+        id: crypto.randomUUID(),
+        title: fd.get('title').trim(),
+        severity: fd.get('severity'),
+        description: fd.get('description').trim(),
+        location: fd.get('location').trim(),
+        assigned: fd.get('assigned'),
+        status: fd.get('status'),
+        createdAt: new Date().toISOString()
+      };
+      
+      state.incidents.unshift(incident);
+      await storage.save('incidents', incident);
+      addActivity(`Logged incident: "${incident.title}" (${incident.severity}).`);
+      
+      document.getElementById('incidentMsg').textContent = 'Incident submitted!';
+      setTimeout(() => document.getElementById('incidentMsg').textContent = '', 1500);
+      e.target.reset();
+      renderAll();
+    });
+
+    // Add Guard functionality
+    function showAddGuardModal() {
+      const modal = document.createElement('div');
+      modal.id = 'addGuardModal';
+      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50';
+      modal.innerHTML = `
+        <div class="bg-slate-900 rounded-xl p-6 w-full max-w-md border border-white/10 shadow-soft">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Add New Guard</h3>
+            <button id="closeAddGuard" class="text-slate-400 hover:text-white">✕</button>
+          </div>
+          <form id="addGuardForm" class="space-y-4">
+            <div>
+              <label class="text-xs text-slate-400">Full Name</label>
+              <input name="name" placeholder="e.g., John Smith" class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white" required>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Badge ID</label>
+              <input name="badge" placeholder="e.g., D-445" class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white" required>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Phone Number</label>
+              <input name="phone" type="tel" placeholder="e.g., (555) 123-4567" class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Shift</label>
+              <select name="shift" class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-slate-300">
+                <option>Day</option>
+                <option>Night</option>
+                <option>Evening</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Location</label>
+              <input name="location" placeholder="e.g., Main Gate, Building C, Sector 7..." class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-white">
+            </div>
+            <div>
+              <label class="text-xs text-slate-400">Status</label>
+              <select name="status" class="w-full px-3 py-2 rounded-lg glass border border-white/10 text-sm text-slate-300">
+                <option>On-duty</option>
+                <option>Break</option>
+                <option>Offline</option>
+              </select>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="flex-1 btn px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white">Add Guard</button>
+              <button type="button" id="cancelAddGuard" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10">Cancel</button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Close modal handlers
+      const closeModal = () => {
+        modal.remove();
+      };
+      
+      document.getElementById('closeAddGuard').addEventListener('click', closeModal);
+      document.getElementById('cancelAddGuard').addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      
+      // Form submission
+      document.getElementById('addGuardForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        
+        // Check if badge already exists
+        const badge = fd.get('badge').trim();
+        if (state.guards.find(g => g.badge === badge)) {
+          showToast('Badge ID already exists');
+          return;
+        }
+        
+        const newGuard = {
+          id: crypto.randomUUID(),
+          name: fd.get('name').trim(),
+          badge: badge,
+          phone: fd.get('phone').trim(),
+          shift: fd.get('shift'),
+          location: fd.get('location'),
+          status: fd.get('status'),
+          x: Math.random() * 80 + 10, // Random position for map
+          y: Math.random() * 60 + 20,
+          createdAt: new Date().toISOString()
+        };
+        
+        state.guards.push(newGuard);
+        await storage.save('guards', newGuard);
+        addActivity(`Added new guard: ${newGuard.name} (${newGuard.badge}).`);
+        renderAll();
+        showToast(`Guard ${newGuard.name} added successfully`);
+        closeModal();
+      });
+      
+      // Focus first input
+      setTimeout(() => {
+        modal.querySelector('input[name="name"]').focus();
+      }, 100);
+    }
+
+    // Add Guard button handlers
+    document.getElementById('addGuardBtn').addEventListener('click', showAddGuardModal);
+    document.getElementById('addGuardBtn2').addEventListener('click', showAddGuardModal);
+
+    // Call functionality
+    function showCallModal(guard) {
+      const modal = document.createElement('div');
+      modal.id = 'callModal';
+      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-6 z-50';
+      modal.innerHTML = `
+        <div class="bg-slate-900 rounded-xl p-6 w-full max-w-md border border-white/10 shadow-soft">
+          <div class="text-center">
+            <div class="h-16 w-16 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-4">
+              <span class="text-2xl">📞</span>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Calling ${guard.name}</h3>
+            <p class="text-slate-400 text-sm mb-1">${guard.badge} • ${guard.location || 'Unknown location'}</p>
+            <p class="text-xl font-mono text-emerald-400 mb-6">${guard.phone}</p>
+            
+            <div id="callStatus" class="mb-6">
+              <div class="flex items-center justify-center gap-2 mb-2">
+                <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span class="text-sm text-slate-300">Connecting...</span>
+              </div>
+              <div class="text-xs text-slate-500">Establishing secure connection</div>
+            </div>
+            
+            <div class="flex gap-3">
+              <button id="endCall" class="flex-1 btn px-4 py-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium">
+                End Call
+              </button>
+              <button id="muteCall" class="px-4 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white">
+                🔇
+              </button>
+              <button id="speakerCall" class="px-4 py-3 rounded-lg bg-white/10 hover:bg-white/20 text-white">
+                🔊
+              </button>
+            </div>
+            
+            <div class="mt-4 text-xs text-slate-500">
+              Note: This is a demo interface. In a real system, this would connect to your phone system or VoIP service.
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      let callDuration = 0;
+      let callTimer;
+      let isConnected = false;
+      let isMuted = false;
+      let isSpeaker = false;
+      
+      // Simulate call connection
+      setTimeout(() => {
+        isConnected = true;
+        const statusEl = document.getElementById('callStatus');
+        statusEl.innerHTML = `
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <div class="h-2 w-2 rounded-full bg-emerald-400"></div>
+            <span class="text-sm text-emerald-300">Connected</span>
+          </div>
+          <div id="callTimer" class="text-xs text-slate-400">00:00</div>
+        `;
+        
+        // Start call timer
+        callTimer = setInterval(() => {
+          callDuration++;
+          const minutes = Math.floor(callDuration / 60).toString().padStart(2, '0');
+          const seconds = (callDuration % 60).toString().padStart(2, '0');
+          const timerEl = document.getElementById('callTimer');
+          if (timerEl) timerEl.textContent = `${minutes}:${seconds}`;
+        }, 1000);
+        
+        addActivity(`Connected call with ${guard.name} (${guard.badge}).`);
+      }, 2000);
+      
+      // Close modal function
+      const closeModal = () => {
+        if (callTimer) clearInterval(callTimer);
+        modal.remove();
+        if (isConnected) {
+          const duration = Math.floor(callDuration / 60) > 0 ? 
+            `${Math.floor(callDuration / 60)}m ${callDuration % 60}s` : 
+            `${callDuration}s`;
+          addActivity(`Call ended with ${guard.name}. Duration: ${duration}.`);
+        } else {
+          addActivity(`Call cancelled with ${guard.name}.`);
+        }
+      };
+      
+      // Event listeners
+      document.getElementById('endCall').addEventListener('click', closeModal);
+      
+      document.getElementById('muteCall').addEventListener('click', (e) => {
+        isMuted = !isMuted;
+        e.target.textContent = isMuted ? '🔇' : '🎤';
+        e.target.classList.toggle('bg-amber-600', isMuted);
+        e.target.classList.toggle('bg-white/10', !isMuted);
+      });
+      
+      document.getElementById('speakerCall').addEventListener('click', (e) => {
+        isSpeaker = !isSpeaker;
+        e.target.textContent = isSpeaker ? '🔊' : '🔈';
+        e.target.classList.toggle('bg-cyan-600', isSpeaker);
+        e.target.classList.toggle('bg-white/10', !isSpeaker);
+      });
+      
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      
+      // ESC key to close
+      const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          document.removeEventListener('keydown', handleEsc);
+        }
+      };
+      document.addEventListener('keydown', handleEsc);
+    }
+
+    // Guard list event delegation
+    document.addEventListener('click', async (e) => {
+      const callId = e.target.getAttribute('data-guard-call');
+      const deleteId = e.target.getAttribute('data-guard-delete');
+      
+      if (callId) {
+        const guard = state.guards.find(g => g.id === callId);
+        if (guard) {
+          showCallModal(guard);
+        }
+      } else if (deleteId) {
+        const guard = state.guards.find(g => g.id === deleteId);
+        if (guard && confirm(`Remove ${guard.name} (${guard.badge}) from the system?\n\nThis action cannot be undone.`)) {
+          try {
+            // Remove from state array
+            const originalLength = state.guards.length;
+            state.guards = state.guards.filter(g => g.id !== deleteId);
+            
+            // Verify deletion worked
+            if (state.guards.length === originalLength) {
+              throw new Error('Guard not found in array');
+            }
+            
+            // Update storage with the filtered array
+            await storage.save('guards', state.guards);
+            
+            addActivity(`Removed guard: ${guard.name} (${guard.badge}).`);
+            showToast(`${guard.name} removed successfully`);
+            renderAll();
+          } catch (error) {
+            console.error('Delete failed:', error);
+            showToast('Failed to remove guard - please try again');
+            // Reload guards from storage in case of error
+            state.guards = await storage.load('guards');
+            renderGuardList();
+          }
+        }
+      }
+    });
+
+    // Incident table event delegation
+    document.getElementById('incidentTable').addEventListener('click', async (e) => {
+      const resolveId = e.target.getAttribute('data-resolve');
+      if (resolveId) {
+        const incident = state.incidents.find(i => i.id === resolveId);
+        if (incident) {
+          incident.status = 'Resolved';
+          await storage.save('incidents', incident);
+          addActivity(`Resolved incident: "${incident.title}".`);
+          renderAll();
+        }
+      }
+    });
+
+    // Demo fill
+    document.getElementById('demoFillIncident').addEventListener('click', () => {
+      const form = document.getElementById('incidentForm');
+      form.title.value = 'Door forced at South Entrance';
+      form.severity.value = 'High';
+      form.description.value = 'Alarm triggered and door sensor indicates forced entry.';
+      form.location.value = 'South Entrance';
+      form.status.value = 'Open';
+    });
+
+    // Report handlers
+    document.getElementById('systemLogsBtn').addEventListener('click', () => {
+      logger.updateLogDisplay();
+      showToast('System logs refreshed');
+    });
+
+    document.getElementById('logLevelFilter').addEventListener('change', () => {
+      logger.updateLogDisplay();
+    });
+
+    document.getElementById('logCategoryFilter').addEventListener('change', () => {
+      logger.updateLogDisplay();
+    });
+
+    document.getElementById('clearLogsBtn').addEventListener('click', () => {
+      if (confirm('Clear all system logs? This cannot be undone.')) {
+        logger.clearLogs();
+        showToast('System logs cleared');
+      }
+    });
+
+    document.getElementById('exportLogsBtn').addEventListener('click', () => {
+      logger.exportLogs('json');
+      showToast('Logs exported as JSON');
+    });
+
+    document.getElementById('refreshLogsBtn').addEventListener('click', () => {
+      logger.updateLogDisplay();
+      showToast('Logs refreshed');
+    });
+
+    document.getElementById('autoScrollLogs').addEventListener('change', (e) => {
+      logger.autoScroll = e.target.checked;
+    });
+
+    // Report generation handlers
+    document.getElementById('incidentReportBtn').addEventListener('click', () => {
+      generateIncidentReport();
+    });
+
+    document.getElementById('guardReportBtn').addEventListener('click', () => {
+      generateGuardReport();
+    });
+
+    document.getElementById('auditTrailBtn').addEventListener('click', () => {
+      generateAuditReport();
+    });
+
+    document.getElementById('exportPdfBtn').addEventListener('click', () => {
+      showToast('PDF export feature coming soon');
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      exportAllDataCsv();
+    });
+
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      exportAllDataJson();
+    });
+
+    document.getElementById('closeReportBtn').addEventListener('click', () => {
+      document.getElementById('reportContent').classList.add('hidden');
+    });
+
+    function generateIncidentReport() {
+      const reportContent = document.getElementById('reportContent');
+      const reportTitle = document.getElementById('reportTitle');
+      const reportBody = document.getElementById('reportBody');
+
+      const totalIncidents = state.incidents.length;
+      const openIncidents = state.incidents.filter(i => i.status !== 'Resolved').length;
+      const resolvedIncidents = state.incidents.filter(i => i.status === 'Resolved').length;
+      const criticalIncidents = state.incidents.filter(i => i.severity === 'Critical').length;
+
+      const severityBreakdown = {
+        Critical: state.incidents.filter(i => i.severity === 'Critical').length,
+        High: state.incidents.filter(i => i.severity === 'High').length,
+        Medium: state.incidents.filter(i => i.severity === 'Medium').length,
+        Low: state.incidents.filter(i => i.severity === 'Low').length
+      };
+
+      reportTitle.textContent = 'Incident Summary Report';
+      reportBody.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">Overview</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span>Total Incidents:</span>
+                <span class="font-semibold">${totalIncidents}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Open:</span>
+                <span class="font-semibold text-amber-400">${openIncidents}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Resolved:</span>
+                <span class="font-semibold text-emerald-400">${resolvedIncidents}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Critical:</span>
+                <span class="font-semibold text-rose-400">${criticalIncidents}</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">Severity Breakdown</h4>
+            <div class="space-y-2 text-sm">
+              ${Object.entries(severityBreakdown).map(([severity, count]) => `
+                <div class="flex justify-between">
+                  <span>${severity}:</span>
+                  <span class="font-semibold">${count}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-white/5">
+          <h4 class="font-semibold mb-3">Recent Incidents</h4>
+          <div class="space-y-2 text-sm">
+            ${state.incidents.slice(0, 5).map(incident => `
+              <div class="flex items-center justify-between p-2 rounded bg-white/5">
+                <div>
+                  <div class="font-medium">${incident.title}</div>
+                  <div class="text-xs text-slate-400">${new Date(incident.createdAt).toLocaleString()}</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-1 rounded text-xs ${
+                    incident.severity === 'Critical' ? 'bg-rose-500/20 text-rose-300' :
+                    incident.severity === 'High' ? 'bg-amber-500/20 text-amber-300' :
+                    incident.severity === 'Medium' ? 'bg-cyan-500/20 text-cyan-300' :
+                    'bg-emerald-500/20 text-emerald-300'
+                  }">${incident.severity}</span>
+                  <span class="px-2 py-1 rounded text-xs ${
+                    incident.status === 'Resolved' ? 'bg-emerald-500/20 text-emerald-300' :
+                    incident.status === 'Investigating' ? 'bg-indigo-500/20 text-indigo-300' :
+                    'bg-amber-500/20 text-amber-300'
+                  }">${incident.status}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      reportContent.classList.remove('hidden');
+      logger.info('REPORT', 'Generated incident summary report');
+    }
+
+    function generateGuardReport() {
+      const reportContent = document.getElementById('reportContent');
+      const reportTitle = document.getElementById('reportTitle');
+      const reportBody = document.getElementById('reportBody');
+
+      const totalGuards = state.guards.length;
+      const onDutyGuards = state.guards.filter(g => g.status === 'On-duty').length;
+      const breakGuards = state.guards.filter(g => g.status === 'Break').length;
+      const offlineGuards = state.guards.filter(g => g.status === 'Offline').length;
+
+      const shiftBreakdown = {
+        Day: state.guards.filter(g => g.shift === 'Day').length,
+        Night: state.guards.filter(g => g.shift === 'Night').length,
+        Evening: state.guards.filter(g => g.shift === 'Evening').length
+      };
+
+      reportTitle.textContent = 'Guard Activity Report';
+      reportBody.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">Status Overview</h4>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span>Total Guards:</span>
+                <span class="font-semibold">${totalGuards}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>On Duty:</span>
+                <span class="font-semibold text-emerald-400">${onDutyGuards}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>On Break:</span>
+                <span class="font-semibold text-amber-400">${breakGuards}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Offline:</span>
+                <span class="font-semibold text-slate-400">${offlineGuards}</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">Shift Distribution</h4>
+            <div class="space-y-2 text-sm">
+              ${Object.entries(shiftBreakdown).map(([shift, count]) => `
+                <div class="flex justify-between">
+                  <span>${shift} Shift:</span>
+                  <span class="font-semibold">${count}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-white/5">
+          <h4 class="font-semibold mb-3">Guard Details</h4>
+          <div class="space-y-2 text-sm">
+            ${state.guards.map(guard => `
+              <div class="flex items-center justify-between p-2 rounded bg-white/5">
+                <div>
+                  <div class="font-medium">${guard.name} (${guard.badge})</div>
+                  <div class="text-xs text-slate-400">${guard.location || 'No location'} • ${guard.shift} Shift</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full ${
+                    guard.status === 'On-duty' ? 'bg-emerald-400' :
+                    guard.status === 'Break' ? 'bg-amber-400' : 'bg-slate-400'
+                  }"></span>
+                  <span class="text-xs">${guard.status}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      reportContent.classList.remove('hidden');
+      logger.info('REPORT', 'Generated guard activity report');
+    }
+
+    function generateAuditReport() {
+      const reportContent = document.getElementById('reportContent');
+      const reportTitle = document.getElementById('reportTitle');
+      const reportBody = document.getElementById('reportBody');
+
+      const recentActivity = state.activity.slice(0, 20);
+      const recentLogs = logger.logs.slice(0, 20);
+
+      reportTitle.textContent = 'Audit Trail Report';
+      reportBody.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">Recent Activity</h4>
+            <div class="space-y-2 text-sm max-h-64 overflow-auto">
+              ${recentActivity.map(activity => `
+                <div class="flex items-start gap-2 p-2 rounded bg-white/5">
+                  <span class="h-2 w-2 rounded-full bg-cyan-400 mt-1.5"></span>
+                  <div class="flex-1">
+                    <div class="text-slate-300">${activity.text}</div>
+                    <div class="text-xs text-slate-500">${activity.time}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="p-4 rounded-lg bg-white/5">
+            <h4 class="font-semibold mb-3">System Events</h4>
+            <div class="space-y-2 text-sm max-h-64 overflow-auto">
+              ${recentLogs.map(log => `
+                <div class="flex items-start gap-2 p-2 rounded bg-white/5">
+                  <span class="text-xs ${
+                    log.level === 'ERROR' ? 'text-rose-400' :
+                    log.level === 'WARN' ? 'text-amber-400' :
+                    log.level === 'INFO' ? 'text-blue-400' : 'text-slate-400'
+                  }">${log.level}</span>
+                  <div class="flex-1">
+                    <div class="text-slate-300">[${log.category}] ${log.message}</div>
+                    <div class="text-xs text-slate-500">${new Date(log.timestamp).toLocaleString()}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="p-4 rounded-lg bg-white/5">
+          <h4 class="font-semibold mb-3">Summary Statistics</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div class="text-center">
+              <div class="text-lg font-bold text-cyan-400">${state.activity.length}</div>
+              <div class="text-xs text-slate-400">Total Activities</div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-blue-400">${logger.logs.length}</div>
+              <div class="text-xs text-slate-400">System Logs</div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-emerald-400">${state.incidents.length}</div>
+              <div class="text-xs text-slate-400">Incidents Logged</div>
+            </div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-amber-400">${state.guards.length}</div>
+              <div class="text-xs text-slate-400">Guards Managed</div>
+            </div>
+          </div>
+        </div>
+      `;
+      reportContent.classList.remove('hidden');
+      logger.info('REPORT', 'Generated audit trail report');
+    }
+
+    function exportAllDataCsv() {
+      const timestamp = new Date().toISOString().slice(0, 10);
+      
+      // Incidents CSV
+      const incidentHeaders = ['ID', 'Title', 'Severity', 'Status', 'Location', 'Assigned', 'Created'];
+      const incidentRows = state.incidents.map(i => [
+        i.id, i.title, i.severity, i.status, i.location || '', i.assigned || '', i.createdAt
+      ]);
+      const incidentCsv = [incidentHeaders, ...incidentRows].map(row => 
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      // Guards CSV
+      const guardHeaders = ['ID', 'Name', 'Badge', 'Status', 'Shift', 'Location', 'Phone', 'Created'];
+      const guardRows = state.guards.map(g => [
+        g.id, g.name, g.badge, g.status, g.shift, g.location || '', g.phone || '', g.createdAt
+      ]);
+      const guardCsv = [guardHeaders, ...guardRows].map(row => 
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      // Combined export
+      const combinedCsv = `INCIDENTS\n${incidentCsv}\n\nGUARDS\n${guardCsv}`;
+      
+      const blob = new Blob([combinedCsv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sagittarius-security-data-${timestamp}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showToast('Data exported as CSV');
+      logger.info('EXPORT', 'Exported all data as CSV');
+    }
+
+    function exportAllDataJson() {
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        incidents: state.incidents,
+        guards: state.guards,
+        activity: state.activity,
+        systemLogs: logger.logs,
+        metadata: {
+          version: '1.0',
+          totalRecords: state.incidents.length + state.guards.length + state.activity.length + logger.logs.length
+        }
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sagittarius-security-complete-${timestamp}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showToast('Complete data exported as JSON');
+      logger.info('EXPORT', 'Exported complete dataset as JSON');
+    }
+
+    function updateReportStats() {
+      document.getElementById('reportIncidentCount').textContent = state.incidents.length;
+      document.getElementById('reportGuardCount').textContent = state.guards.filter(g => g.status !== 'Offline').length;
+      document.getElementById('reportLogCount').textContent = logger.logs.length;
+      document.getElementById('reportLastActivity').textContent = state.activity.length > 0 ? 
+        state.activity[0].time : '—';
+    }
+
+    // Initialize app
+    async function init() {
+      // Load data from storage
+      try {
+        const storedIncidents = await storage.load('incidents');
+        const storedGuards = await storage.load('guards');
+        const storedActivity = await storage.load('activity');
+        const storedLogs = await storage.load('systemLogs');
+        
+        if (storedIncidents.length > 0) state.incidents = storedIncidents;
+        if (storedGuards.length > 0) state.guards = storedGuards;
+        if (storedActivity.length > 0) state.activity = storedActivity;
+        if (storedLogs.length > 0) {
+          logger.logs = storedLogs;
+          state.systemLogs = storedLogs;
+        }
+      } catch (error) {
+        console.warn('Failed to load stored data:', error);
+        logger.error('SYSTEM', 'Failed to load stored data', { error: error.message });
+      }
+
+      // Seed demo data if empty
+      if (state.incidents.length === 0) {
+        const demoIncidents = [
+          { id: crypto.randomUUID(), title: 'Door forced at South Entrance', severity:'High', description:'Alarm triggered and door sensor indicates forced entry.', location:'South Entrance', assigned:'J. Carter', status:'Open', createdAt: new Date().toISOString() },
+          { id: crypto.randomUUID(), title: 'CCTV outage in Lot B', severity:'Medium', description:'Camera feed intermittent, investigating wiring.', location:'Parking Lot B', assigned:'M. Silva', status:'Investigating', createdAt: new Date().toISOString() }
+        ];
+        state.incidents = demoIncidents;
+        for (const incident of demoIncidents) {
+          await storage.save('incidents', incident);
+        }
+      }
+
+      if (state.activity.length === 0) {
+        const demoActivity = [
+          { id: crypto.randomUUID(), text: 'System initialized with enhanced storage.', time: fmtTime(), timestamp: Date.now() },
+          { id: crypto.randomUUID(), text: 'Auto-sync enabled for data persistence.', time: fmtTime(), timestamp: Date.now() }
+        ];
+        state.activity = demoActivity;
+        for (const activity of demoActivity) {
+          await storage.save('activity', activity);
+        }
+      }
+
+      renderAll();
+      updateReportStats();
+      
+      // Initialize system logs
+      logger.info('SYSTEM', 'Sagittarius Security Service initialized');
+      logger.info('STORAGE', 'Enhanced storage system ready');
+      
+      // Show auth gate
+      document.getElementById('authGate').classList.remove('hidden');
+      document.getElementById('appShell').classList.add('hidden');
+    }
+
+    // Update existing functions to include logging
+    const originalAddActivity = addActivity;
+    addActivity = (text) => {
+      originalAddActivity(text);
+      logger.info('ACTIVITY', text);
+    };
+
+    const originalCompleteSignIn = completeSignIn;
+    completeSignIn = (profile) => {
+      originalCompleteSignIn(profile);
+      logger.info('AUTH', `User signed in: ${profile.badge} (${profile.role})`);
+    };
+
+    // Update render functions to include report stats
+    const originalRenderAll = renderAll;
+    renderAll = () => {
+      originalRenderAll();
+      updateReportStats();
+    };
+
+    // Start the app
+    init();
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97950471f29073d4',t:'MTc1NjkwMDA5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
